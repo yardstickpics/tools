@@ -1,6 +1,6 @@
 {
   "name": "yr",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Yardstick.pictures helper tool",
   "main": "lib/yr.js",
   "keywords": [
@@ -12,6 +12,7 @@
   ],
   "author": "Kornel <kornel@geekhood.net>",
   "license": "GPL-3.0+",
+  "repository": "https://github.com/yardstickpics/tools",
   "dependencies": {
     "co": "^4.6.0",
     "denodeify": "^1.2.1",

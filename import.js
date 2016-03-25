@@ -10,8 +10,9 @@ const stat = denodeify(fs.stat);
 const getDimensionsSync = require('image-size');
 const getDimensions = denodeify(getDimensionsSync);
 
-const Yr = require('./lib/yr');
-const yr = new Yr();
+const yr = require('./lib/yr');
+const Metadata = yr.Metadata;
+const metadata = new Metadata();
 
 const dbQueue = new Queue(1);
 
@@ -34,7 +35,7 @@ co(function*(){
     yield dbExec(db, "CREATE TABLE IF NOT EXISTS image_tags(tag_id INTEGER NOT NULL, image_id INTEGER NOT NULL, PRIMARY KEY(image_id, tag_id))");
     yield dbExec(db, "CREATE UNIQUE INDEX IF NOT EXISTS tags_by_tag ON image_tags(tag_id, image_id)");
 
-    yield yr.forEach({
+    yield metadata.forEach({
         progress: true,
     }, image => {
         return gatherImageMetadata(image)

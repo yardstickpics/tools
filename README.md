@@ -5,7 +5,7 @@
 Scans [`metadata/`](https://github.com/yardstickpics/metadata) and [`downloads/`](https://yardstick.pictures/#download)
 directories to import all images into `images.db`.
 
-## `lib/yr.js`
+## `lib/metadata.js`
 
 Programmatic API for using the metadata. It's a class with following methods:
 
@@ -49,8 +49,8 @@ Writes `.data` to disk.
 Iterate over all available images' metadata and put in any `.name` fields that may be missing:
 
 ```js
-const Yr = require('./lib/yr');
-const yr = new Yr();
+const Metadata = require('yr').Metadata;
+const yr = new Metadata();
 
 yr.forEach(image => {
     if (!image.data.name) {
@@ -65,8 +65,8 @@ Iterate over all available images and file sizes of some of them:
 
 ```js
 const fs = require('fs');
-const Yr = require('./lib/yr');
-const yr = new Yr();
+const Metadata = require('yr').Metadata;
+const yr = new Metadata();
 
 yr.map({
     progress: true,
