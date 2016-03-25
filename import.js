@@ -9,10 +9,11 @@ const readFile = denodeify(fs.readFile);
 const stat = denodeify(fs.stat);
 const getDimensionsSync = require('image-size');
 const getDimensions = denodeify(getDimensionsSync);
-const glob = require('glob').sync;
+
+const Yr = require('./lib/yr');
+const yr = new Yr();
 
 const dbQueue = new Queue(1);
-const gatherQueue = new Queue(4);
 
 co(function*(){
     const db = yield new Promise((resolve, reject) => {
@@ -34,47 +35,31 @@ co(function*(){
     yield dbExec(db, "CREATE TABLE IF NOT EXISTS image_tags(tag_id INTEGER NOT NULL, image_id INTEGER NOT NULL, PRIMARY KEY(image_id, tag_id))");
     yield dbExec(db, "CREATE UNIQUE INDEX IF NOT EXISTS tags_by_tag ON image_tags(tag_id, image_id)");
 
-    const allFiles = glob('metadata/??/*.json');
-    const toDo = allFiles.length;
-    let done = 0;
-    let lastDisplayed=-1;
-
-    const timer = setInterval(() => {
-        if (done == lastDisplayed) return;
-        lastDisplayed = done;
-        console.log(`Done ${done} (${Math.round(done/toDo*100)}%)`);
-    }, 1000);
-    try {
-        yield Promise.all(allFiles.map(filePath => {
-            return gatherData(filePath)
-                .then(data => putIntoDatabase(db, filePath, data))
-                .then(() => {done++});
-        }));
-    } finally {
-        clearInterval(timer);
-    }
+    yield yr.forEach({
+        progress: true,
+    }, image => {
+        return gatherImageMetadata(image)
+            .then(data => putIntoDatabase(db, data));
+    });
 })
 .catch(err => {
     console.error((err && err.stack) || err);
 });
 
-function gatherData(filePath) {
-    return gatherQueue.add(co.wrap(function*() {
-        const json = yield readFile(filePath);
-        const parsed = JSON.parse(json);
-        const path = filePath.replace(/^metadata/,'downloads').replace(/json$/, parsed.ext);
-
+function gatherImageMetadata(image) {
+    return co(function*() {
+        const path = image.sourcePath();
         const data = {
-            json,
-            lic: parsed.lic,
-            sha1: parsed.sha1,
+            json: image.json(),
+            lic: image.data.lic,
+            sha1: image.data.sha1,
         };
 
         try {
             data.size = (yield stat(path)).size;
             data.path = path;
         } catch(err) {
-            console.log(path, "for", filePath, "is missing");
+            console.log(path, "is missing");
             return data;
         }
 
@@ -93,10 +78,10 @@ function gatherData(filePath) {
         }
 
         return data;
-    }));
+    });
 }
 
-function putIntoDatabase(db, filePath, data) {
+function putIntoDatabase(db, data) {
     return dbQueue.add(co.wrap(function*() {
 
         yield dbExec(db, "BEGIN");
@@ -116,7 +101,7 @@ function putIntoDatabase(db, filePath, data) {
             yield dbExec(db, "COMMIT");
         }
         catch(err) {
-            console.error(filePath, (err && err.stack) || err);
+            console.error((err && err.stack) || err);
             yield dbExec(db, "ROLLBACK");
         }
     }));
