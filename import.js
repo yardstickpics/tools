@@ -25,7 +25,6 @@ co(function*(){
 
     yield dbExec(db, `CREATE TABLE IF NOT EXISTS images(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
         sha1 TEXT UNIQUE NOT NULL,
-        path TEXT,
         lic TEXT NOT NULL,
         size INTEGER,
         width INTEGER,
@@ -57,7 +56,6 @@ function gatherImageMetadata(image) {
 
         try {
             data.size = (yield stat(path)).size;
-            data.path = path;
         } catch(err) {
             console.log(path, "is missing");
             return data;
@@ -88,12 +86,12 @@ function putIntoDatabase(db, data) {
         try {
             const existing = yield dbGet(db, "SELECT id FROM images WHERE sha1 = ?", [data.sha1]);
             let id;
-            const cols = [data.lic, data.size, data.width, data.height, data.path, data.json, data.sha1];
+            const cols = [data.lic, data.size, data.width, data.height, data.json, data.sha1];
             if (existing.length) {
                 id = existing[0].id;
-                yield dbExec(db, "UPDATE images SET lic=?, size=?, width=?, height=?, path=?, json=? WHERE sha1=?", cols);
+                yield dbExec(db, "UPDATE images SET lic=?, size=?, width=?, height=?, json=? WHERE sha1=?", cols);
             } else {
-                const insert = yield dbExec(db, "INSERT INTO images(lic,size,width,height,path,json,sha1) VALUES(?,?,?,?,?,?,?)", cols);
+                const insert = yield dbExec(db, "INSERT INTO images(lic,size,width,height,json,sha1) VALUES(?,?,?,?,?,?,?)", cols);
                 id = insert.lastID;
             }
 
