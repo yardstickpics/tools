@@ -1,13 +1,25 @@
 # Yardstick image test suite tools
 
+    npm install --save yr
+    git clone https://github.com/yardstickpics/metadata.git
+
 ## `import.js`
 
 Scans [`metadata/`](https://github.com/yardstickpics/metadata) and [`downloads/`](https://yardstick.pictures/#download)
 directories to import all images into `images.db`.
 
-## `lib/metadata.js`
+## `Metadata`
 
-Programmatic API for using the metadata. It's a class with following methods:
+Programmatic API for using/browsing the metadata. The class' constructor takes one option:
+
+ * `sha1s` — optional array of SHA-1 hashes of images to interate. If this option is not provided, it iterates over all available images.
+
+```js
+const yr = require('yr');
+const metadata = new yr.Metadata();
+```
+
+The class has following methods:
 
 ### `.map([options,] callback)`
 
@@ -17,12 +29,50 @@ Options are:
 
  * `progress` — boolean. If `true`, periodically log how many callbacks have been executed and how much time is estimated to finish.
  * `cpus` — integer. Number of tasks to run in parallel.
+ * `max` — integer. Iterate only over this many images. Useful for testing tools on small samples.
 
 Returns a `Promise` for an array of results from all callbacks. If any callback throws or returns a `Promise` that fails, the whole `map` will be aborted.
+
+#### Example
+
+Iterate over all available images and file sizes of some of them:
+
+```js
+const fs = require('fs');
+const Metadata = require('yr').Metadata;
+const yr = new Metadata();
+
+yr.map({progress: true}, image => {
+    if (image.data.lic == "pd") {
+        return fs.statSync(image.sourcePath()).size;
+    }
+}).then(allValues => {
+    const sizes = allValues.filter(x => x); // Remove undefined values
+    const sum = sizes.reduce((sum,x) => sum+x, 0);
+    console.log("Average public domain image size in this set is", sum / sizes.length);
+});
+```
 
 ### `.forEach([options,] callback)`
 
 Same as `map`, but returns a `Promise` for `undefined`.
+
+#### Example
+
+Iterate over all available images' metadata and put in any `.name` fields that may be missing:
+
+```js
+const Metadata = require('yr').Metadata;
+const yr = new Metadata();
+
+yr.forEach(image => {
+    if (!image.data.name) {
+        image.data.name = "Unnamed image";
+        image.save();
+    }
+})
+.catch(err => console.error(err));
+```
 
 ### `Image`
 
@@ -43,40 +93,3 @@ Returns stringified `.data`.
 #### `.save()`
 
 Writes `.data` to disk.
-
-### Example
-
-Iterate over all available images' metadata and put in any `.name` fields that may be missing:
-
-```js
-const Metadata = require('yr').Metadata;
-const yr = new Metadata();
-
-yr.forEach(image => {
-    if (!image.data.name) {
-        image.data.name = "Unnamed image";
-        image.save();
-    }
-})
-.catch(err => console.error(err));
-```
-
-Iterate over all available images and file sizes of some of them:
-
-```js
-const fs = require('fs');
-const Metadata = require('yr').Metadata;
-const yr = new Metadata();
-
-yr.map({
-    progress: true,
-}, image => {
-    if (image.data.lic == "pd") {
-        return fs.statSync(image.sourcePath()).size;
-    }
-}).then(allValues => {
-    const sizes = allValues.filter(x => x); // Remove undefined values
-    const sum = sizes.reduce((sum,x) => sum+x, 0);
-    console.log("Average public domain image size in this set is", sum / sizes.length);
-});
-```
