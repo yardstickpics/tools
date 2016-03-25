@@ -9,7 +9,7 @@ Requires stable version of NodeJS and (optionally) ImageMagick. To get started:
 
 ## `import.js`
 
-Scans [`metadata/`](https://github.com/yardstickpics/metadata) and [`downloads/`](https://yardstick.pictures/#download)
+Scans [`metadata/`](https://github.com/yardstickpics/metadata#readme) and [`downloads/`](https://yardstick.pictures/#download)
 directories to import all images into an sqlite database `images.db`.
 
 ## `Metadata`
@@ -85,7 +85,7 @@ Image instance given to the callback has following properties/methods:
 
 #### `.data`
 
-Raw [`metadata`](https://github.com/yardstickpics/metadata).
+Raw [`metadata`](https://github.com/yardstickpics/metadata#readme).
 
 #### `.sourcePath()`
 
