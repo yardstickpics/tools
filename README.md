@@ -1,12 +1,16 @@
 # Yardstick image test suite tools
 
+Library that helps using and managing image metadata provided by [Yardstick Pictures](https://yardstick.pictures/).
+
+Requires stable version of NodeJS and (optionally) ImageMagick. To get started:
+
     npm install --save yr
     git clone https://github.com/yardstickpics/metadata.git
 
 ## `import.js`
 
 Scans [`metadata/`](https://github.com/yardstickpics/metadata) and [`downloads/`](https://yardstick.pictures/#download)
-directories to import all images into `images.db`.
+directories to import all images into an sqlite database `images.db`.
 
 ## `Metadata`
 
@@ -30,8 +34,9 @@ Options are:
  * `progress` — boolean. If `true`, periodically log how many callbacks have been executed and how much time is estimated to finish.
  * `cpus` — integer. Number of tasks to run in parallel.
  * `max` — integer. Iterate only over this many images. Useful for testing tools on small samples.
+ * `ignoreErrors` — boolean. By default if any callback throws or returns a `Promise` that fails, the whole `map` will be aborted.
 
-Returns a `Promise` for an array of results from all callbacks. If any callback throws or returns a `Promise` that fails, the whole `map` will be aborted.
+Returns a `Promise` for an array of results from all callbacks.
 
 #### Example
 
@@ -85,6 +90,10 @@ Raw [`metadata`](https://github.com/yardstickpics/metadata).
 #### `.sourcePath()`
 
 Returns file path to the source image (e.g. "downloads/00/0000…0000.jpeg"). It'll return a path even if the file does not exist.
+
+#### `.addTag(tag)`
+
+Adds a tag to `.data.tags` and returns `true` if it's a new tag.
 
 #### `.json()`
 
