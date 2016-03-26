@@ -12,10 +12,13 @@ const yr = require('./lib/yr');
 const Metadata = yr.Metadata;
 const metadata = new Metadata();
 
-yr.Database.open().then(db => {
-    return metadata.forEach({progress: true}, image => {
-        return gatherImageMetadata(image)
-            .then(data => putIntoDatabase(db, data));
+co(function*(){
+    const db = yield yr.Database.open();
+    yield metadata.forEach({progress: true}, image => {
+        return putIntoDatabase(db, image);
+    });
+    yield metadata.forEach({progress: true}, image => {
+        return addDimensions(db, image);
     });
 })
 .catch(err => {
@@ -26,10 +29,6 @@ function gatherImageMetadata(image) {
     return co(function*() {
         const path = image.sourcePath();
         const data = {
-            json: image.json(),
-            lic: image.data.lic,
-            tags: image.data.tags,
-            sha1: image.data.sha1,
         };
 
         try {
@@ -57,19 +56,27 @@ function gatherImageMetadata(image) {
     });
 }
 
-function putIntoDatabase(db, data) {
+function addDimensions(db, image) {
+    return gatherImageMetadata(image).then(data => {
+        return db.transaction(() => {
+            return db.exec("UPDATE images SET width = ?, height = ?, size = ? WHERE sha1 = ?",
+                [data.width, data.height, data.size, image.data.sha1]);
+        });
+    });
+}
+
+function putIntoDatabase(db, image) {
     return db.transaction(co.wrap(function*() {
-        const existing = yield db.get1("SELECT id FROM images WHERE sha1 = ?", [data.sha1]);
+        const existing = yield db.get1("SELECT id FROM images WHERE sha1 = ?", [image.data.sha1]);
+        const cols = [image.data.lic, image.json(), image.data.sha1];
         let id;
-        const cols = [data.lic, data.size, data.width, data.height, data.json, data.sha1];
         if (existing) {
             id = existing.id;
-            yield db.exec("UPDATE images SET lic=?, size=?, width=?, height=?, json=? WHERE sha1=?", cols);
+            yield db.exec("UPDATE images SET lic = ?, json = ? WHERE sha1 = ?", cols);
         } else {
-            const insert = yield db.exec("INSERT INTO images(lic,size,width,height,json,sha1) VALUES(?,?,?,?,?,?,?)", cols);
-            id = insert.lastID;
+            id = (yield db.exec("INSERT INTO images(lic,json,sha1) VALUES(?,?,?)", cols)).lastID;
         }
-        yield addTags(db, id, data.tags);
+        yield addTags(db, id, image.data.tags);
     }));
 }
 
