@@ -14,9 +14,10 @@ directories to import all images into an sqlite database `images.db`.
 
 ## `Metadata`
 
-Programmatic API for using/browsing the metadata. The class' constructor takes one option:
+Programmatic API for using/browsing the metadata. The class' constructor takes following options:
 
  * `sha1s` — optional array of SHA-1 hashes of images to interate. If this option is not provided, it iterates over all available images.
+ * `root` — optional path of clone of the [`metadata`](https://github.com/yardstickpics/metadata). `./metadata/` by default.
 
 ```js
 const yr = require('yr');
