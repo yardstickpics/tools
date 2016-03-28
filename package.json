@@ -1,6 +1,6 @@
 {
   "name": "yr",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "Yardstick.pictures helper tool",
   "main": "lib/yr.js",
   "keywords": [
