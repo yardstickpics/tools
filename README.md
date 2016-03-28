@@ -81,7 +81,7 @@ yr.forEach(image => {
 
 ### `Image`
 
-Image instance given to the callback has following properties/methods:
+Object that represents an image (its metadata). It has following properties/methods:
 
 #### `.data`
 
@@ -102,3 +102,21 @@ Returns stringified `.data`.
 #### `.save()`
 
 Writes `.data` to disk.
+
+### `Image.createFromFile(metadataObject, filePath)`
+
+A "static" method on `Image` that creates a new metadata JSON file and copies the file to its intended location in `downloads/` directory.
+
+The first argument must be an object that contains as many fields of Raw [`metadata`](https://github.com/yardstickpics/metadata#readme) as possible, except the `sha1` and `created` fields, which will be set automatically.
+
+Returns a `Promise` for the `Image` instance.
+
+### `Image.createFromBuffer(metadataObject, Buffer)`
+
+Same as `createFromFile`, but writes image from a `Buffer` instead.
+
+```js
+const Image = require('yr').Image;
+
+yr.Image.createFromFile({lic:'pd', name:'example'}, 'example.png')
+    .catch(err => console.error);
