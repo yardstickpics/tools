@@ -108,7 +108,7 @@ Writes `.data` to disk.
 
 A "static" method on `Image` that creates a new metadata JSON file and copies the file to its intended location in `downloads/` directory.
 
-The first argument must be an object that contains as many fields of Raw [`metadata`](https://github.com/yardstickpics/metadata#readme) as possible, except the `sha1` and `created` fields, which will be set automatically.
+The first argument must be an object that contains as many fields of Raw [`metadata`](https://github.com/yardstickpics/metadata#readme) as possible, except the `sha1` field, which will be set automatically.
 
 Returns a `Promise` for the `Image` instance.
 
