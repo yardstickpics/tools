@@ -17,6 +17,7 @@ co(function*(){
     yield metadata.forEach({progress: true}, image => {
         return putIntoDatabase(db, image);
     });
+    console.log("Adding dimensions");
     yield metadata.forEach({progress: true}, image => {
         return addDimensions(db, image);
     });
@@ -57,11 +58,15 @@ function gatherImageMetadata(image) {
 }
 
 function addDimensions(db, image) {
-    return gatherImageMetadata(image).then(data => {
-        return db.transaction(() => {
-            return db.exec("UPDATE images SET width = ?, height = ?, size = ? WHERE sha1 = ?",
-                [data.width, data.height, data.size, image.data.sha1]);
-        });
+    return db.get1("SELECT sha1 FROM images WHERE sha1 = ? AND width IS NULL", [image.data.sha1]).then(found => {
+        if (found) {
+            return gatherImageMetadata(image).then(data => {
+                return db.transaction(() => {
+                    return db.exec("UPDATE images SET width = ?, height = ?, size = ? WHERE sha1 = ?",
+                        [data.width, data.height, data.size, image.data.sha1]);
+                });
+            });
+        }
     });
 }
 
