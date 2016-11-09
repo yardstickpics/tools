@@ -7,10 +7,15 @@ Requires stable version of NodeJS (v6+) and (optionally) ImageMagick. To get sta
     npm install --save yr
     git clone https://github.com/yardstickpics/metadata.git
 
+## `download.js`
+
+Scans [`metadata/`](https://github.com/yardstickpics/metadata#readme) and downloads all associated image
+files to [`downloads/`](https://yardstick.pictures/#download) directory. This will download about 80GB of data.
+
 ## `import.js`
 
-Scans [`metadata/`](https://github.com/yardstickpics/metadata#readme) and [`downloads/`](https://yardstick.pictures/#download)
-directories to import all images into an sqlite database `images.db`.
+Scans [`metadata/`](https://github.com/yardstickpics/metadata#readme) and `downloads/` directories
+to import all images into an sqlite database `images.db`.
 
 ## `Metadata`
 
