@@ -2,7 +2,7 @@
 
 Library that helps using and managing image metadata provided by [Yardstick Pictures](https://yardstick.pictures/).
 
-Requires stable version of NodeJS and (optionally) ImageMagick. To get started:
+Requires stable version of NodeJS (v6+) and (optionally) ImageMagick. To get started:
 
     npm install --save yr
     git clone https://github.com/yardstickpics/metadata.git
