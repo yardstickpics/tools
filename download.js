@@ -12,34 +12,33 @@ const yr = require('./lib/yr');
 const Metadata = yr.Metadata;
 const metadata = new Metadata();
 
-metadata.forEach({progress: true}, image => {
+metadata.forEach({progress: true}, async function(image) {
     const relPath = image.sourcePath();
     const filePath = `./${relPath}`;
     const remoteURL = `https://yardstick.pictures/${encodeURI(relPath)}`;
-    return fsexists(filePath).then(exists => {
-        if (!exists) {
-            const request = superagent.get(remoteURL);
-            const ext = image.data.ext;
-            const dirPath = path.dirname(filePath);
-            const dirPromise = fsexists(dirPath).then(exists => {
-                if (!exists) {
-                    return mkdirp(dirPath);
-                }
-            });
+    const exists = await fsexists(filePath);
+    if (!exists) {
+        const request = superagent.get(remoteURL);
+        const ext = image.data.ext;
+        const dirPath = path.dirname(filePath);
+        const dirPromise = fsexists(dirPath).then(exists => {
+            if (!exists) {
+                return mkdirp(dirPath);
+            }
+        });
 
-            // Don't compress already-compressed
-            request.set('Accept-Encoding', (ext !== 'jpeg' && ext !== 'png') ? 'gzip' : 'identity');
+        // Don't compress already-compressed
+        request.set('Accept-Encoding', (ext !== 'jpeg' && ext !== 'png') ? 'gzip' : 'identity');
 
-            return request.then(res => {
-                return dirPromise.then(() => writeFile(filePath, res.body));
-            })
-            .then(() => {
-                console.log("Downloaded", filePath);
-            }, err => {
-                console.error("Could not download", remoteURL, `${err}`);
-            });
+        try {
+            const res = await request;
+            await dirPromise;
+            await writeFile(filePath, res.body);
+            console.log("Downloaded", filePath);
+        } catch(err) {
+            console.error("Could not download", remoteURL, `${err}`);
         }
-    })
+    }
 })
 .catch(err => {
     console.error((err && err.stack) || err);
