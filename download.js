@@ -14,7 +14,7 @@ const metadata = new Metadata();
 
 metadata.forEach({progress: true}, image => {
     const relPath = image.sourcePath();
-    const filePath = `nopez/${relPath}`;
+    const filePath = `./${relPath}`;
     const remoteURL = `https://yardstick.pictures/${encodeURI(relPath)}`;
     return fsexists(filePath).then(exists => {
         if (!exists) {
